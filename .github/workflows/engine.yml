@@ -1,0 +1,25 @@
+name: Engine
+on:
+    workflow_dispatch:
+    schedule:
+    - cron: '*/10 * * * *'
+jobs:
+  run-engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          pip install notion-client
+      - name: Run engine script
+        run: python engine.py
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          LINE_BOT_TOKEN: ${{ secrets.LINE_BOT_TOKEN }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          A8_EMAIL: ${{ secrets.A8_EMAIL }}
+          A8_PASSWORD: ${{ secrets.A8_PASSWORD }}
