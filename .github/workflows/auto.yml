@@ -1,0 +1,11 @@
+name: Unified Auto Bot
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+jobs:
+  call-365bot:
+    uses: inamasaru/365bot/.github/workflows/bot.yml@main
+  call-a8bot:
+    uses: inamasaru/a8-affiliate-bot/.github/workflows/a8bot.yml@main
+  call-engine:
+    uses: inamasaru/api-biz-engine/.github/workflows/engine.yml@main
