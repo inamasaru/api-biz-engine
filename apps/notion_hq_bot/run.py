@@ -4,6 +4,7 @@ import requests
 from openai import OpenAI
 
 
+
 def extract_text(prop):
     """Extract plain text from a Notion property."""
     if not prop:
@@ -17,6 +18,7 @@ def extract_text(prop):
         if 'checkbox' in prop:
             return prop.get('checkbox', False)
     return str(prop)
+
 
 
 def main():
@@ -92,61 +94,107 @@ def main():
     near_goal = extract_text(properties.get('NearGoal'))
     progress = extract_text(properties.get('Progress'))
 
-    # Build prompt for OpenAI
-    prompt = f"現在の進捗状況に基づいて次のアクションを提案してください。\nFinalGoal: {final_goal}\nNearGoal: {near_goal}\nProgress: {progress}\n次のアクションは120文字以内で、箇条書きでも構いません。"
+    status = 'SUCCESS'
+    error_summary = ''
+    next_action_text = ''
 
-    # Call OpenAI to get next action
+    # Build prompt for OpenAI
+    prompt = (
+        'あなたは目標達成をサポートするアシスタントです。'
+        '次のアクションは1つだけ、30〜60分で終わる具体的なタスクにしてください。'
+        '成果物（例：Notionに〇〇を記入、Issueを1つ作る、PRを1つ出す 等）を含み、完了条件を1行で記入してください。'
+        '以下の形式で日本語で出力してください：\n'
+        '今日やること：…\n'
+        '成果物：…\n'
+        '完了条件：…\n'
+        '所要：…分\n'
+        f'FinalGoal: {final_goal}\n'
+        f'NearGoal: {near_goal}\n'
+        f'Progress: {progress}'
+    )
+
     try:
         response = client.chat.completions.create(
             model=openai_model,
             messages=[
-                {'role': 'system', 'content': 'あなたは目標達成をサポートするアシスタントです。'},
                 {'role': 'user', 'content': prompt},
             ],
-            max_tokens=100,
+            max_tokens=200,
             temperature=0.7,
         )
         ai_message = response.choices[0].message.content.strip()
+        next_action_text = ai_message
     except Exception as exc:
-        print(f'OpenAI API error: {exc}')
-        return
+        status = 'FAIL'
+        error_summary = str(exc)[:200]
 
-    # Truncate to 120 characters
-    next_action_text = ai_message[:120]
-
-    # Update the page with NextAction and UpdatedAt
-    update_url = f'https://api.notion.com/v1/pages/{page_id}'
-    update_headers = {
-        'Authorization': f'Bearer {notion_token}',
-        'Notion-Version': notion_version,
-        'Content-Type': 'application/json',
-    }
     updated_at = datetime.datetime.utcnow().isoformat()
-    update_payload = {
-        'properties': {
-            'NextAction': {
-                'rich_text': [
-                    {
-                        'text': {
-                            'content': next_action_text
-                        }
+
+    # Build properties for Notion update
+    update_props = {}
+
+    if status == 'SUCCESS' and next_action_text:
+        update_props['NextAction'] = {
+            'rich_text': [
+                {
+                    'text': {
+                        'content': next_action_text
                     }
-                ]
-            },
-            'UpdatedAt': {
-                'date': {
-                    'start': updated_at
                 }
+            ]
+        }
+        update_props['UpdatedAt'] = {
+            'date': {
+                'start': updated_at
             }
         }
-    }
-    update_resp = requests.patch(update_url, headers=update_headers, json=update_payload)
-    try:
-        update_resp.raise_for_status()
-    except Exception as exc:
-        print(f'Failed to update Notion page: {exc}')
-        return
-    print('Notion page updated successfully.')
+
+    # Always log run status if corresponding properties exist
+    if 'LastRunStatus' in properties:
+        update_props['LastRunStatus'] = {
+            'select': {
+                'name': status
+            }
+        }
+    if 'LastRunAt' in properties:
+        update_props['LastRunAt'] = {
+            'date': {
+                'start': updated_at
+            }
+        }
+    if 'LastRunError' in properties:
+        update_props['LastRunError'] = {
+            'rich_text': [
+                {
+                    'text': {
+                        'content': error_summary
+                    }
+                }
+            ]
+        }
+
+    # If there are properties to update, send the patch
+    if update_props:
+        update_url = f'https://api.notion.com/v1/pages/{page_id}'
+        update_headers = {
+            'Authorization': f'Bearer {notion_token}',
+            'Notion-Version': notion_version,
+            'Content-Type': 'application/json',
+        }
+        update_payload = {
+            'properties': update_props
+        }
+        try:
+            update_resp = requests.patch(update_url, headers=update_headers, json=update_payload)
+            update_resp.raise_for_status()
+            if next_action_text:
+                print(next_action_text)
+            else:
+                print('Notion page updated.')
+        except Exception as exc:
+            print(f'Failed to update Notion page: {exc}')
+    else:
+        print('No properties to update.')
 
 
 if __name__ == '__main__':
