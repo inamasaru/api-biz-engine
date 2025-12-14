@@ -1,10 +1,8 @@
 name: Notion HQ Auto Update
-
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'
-
 jobs:
   notion-hq:
     runs-on: ubuntu-latest
@@ -24,3 +22,18 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
         run: python apps/notion_hq_bot/run.py
+      - name: Slack notify success
+        if: success()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          payload='{"text":"Notion HQ Auto Update 成功"}'
+          curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK_URL
+      - name: Slack notify failure
+        if: failure()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          payload='{"text":"Notion HQ Auto Update 失敗: $GITHUB_RUN_URL"}'
+          curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK_URL
