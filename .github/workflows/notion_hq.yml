@@ -23,20 +23,28 @@ jobs:
           OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
         run: python apps/notion_hq_bot/run.py
       - name: Slack notify success
-        if: ${{ success() && secrets.SLACK_WEBHOOK_URL != '' }}
+        if: ${{ success() }}
         continue-on-error: true
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          payload='{"text":"✅ HQ updated. (link: $GITHUB_RUN_URL)"}'
-          curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK_URL
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            payload='{"text":"✅ HQ updated. (link: '"$GITHUB_RUN_URL"')"}'
+            curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK_URL
+          else
+            echo "No Slack webhook configured. Skipping notification."
+          fi
       - name: Slack notify failure
-        if: ${{ failure() && secrets.SLACK_WEBHOOK_URL != '' }}
+        if: ${{ failure() }}
         continue-on-error: true
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          payload='{"text":"❌ HQ update failed. (link: $GITHUB_RUN_URL)"}'
-          curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK_URL
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            payload='{"text":"❌ HQ update failed. (link: '"$GITHUB_RUN_URL"')"}'
+            curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK_URL
+          else
+            echo "No Slack webhook configured. Skipping notification."
+          fi
