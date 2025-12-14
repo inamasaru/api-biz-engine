@@ -1,7 +1,7 @@
 import os
 import datetime
 import requests
-import openai
+from openai import OpenAI
 
 
 def extract_text(prop):
@@ -30,7 +30,7 @@ def main():
     if not notion_token or not database_id or not openai_api_key:
         raise ValueError('Missing required environment variables.')
 
-    openai.api_key = openai_api_key
+    client = OpenAI(api_key=openai_api_key)
 
     # Determine data source ID if not provided
     if not data_source_id:
@@ -97,7 +97,7 @@ def main():
 
     # Call OpenAI to get next action
     try:
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model=openai_model,
             messages=[
                 {'role': 'system', 'content': 'あなたは目標達成をサポートするアシスタントです。'},
