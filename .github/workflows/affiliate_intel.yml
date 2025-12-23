@@ -1,0 +1,40 @@
+name: Affiliate Intelligence Layer
+
+on:
+  schedule:
+    - cron: "5 0,6,12,18 * * *"
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install -r requirements.txt
+      - name: Run affiliate pipeline
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+          WORDPRESS_URL: ${{ secrets.WORDPRESS_URL }}
+          WORDPRESS_USER: ${{ secrets.WORDPRESS_USER }}
+          WORDPRESS_APP_PASSWORD: ${{ secrets.WORDPRESS_APP_PASSWORD }}
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DB_ID: ${{ secrets.NOTION_DB_ID }}
+          A8_FEED_CSV_URL: ${{ secrets.A8_FEED_CSV_URL }}
+          A8_FEED_CSV_PATH: ${{ secrets.A8_FEED_CSV_PATH }}
+          RAKUTEN_APP_ID: ${{ secrets.RAKUTEN_APP_ID }}
+          RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
+          RAKUTEN_KEYWORDS: ${{ secrets.RAKUTEN_KEYWORDS }}
+          RAKUTEN_COMMISSION_RATE_DEFAULT: ${{ secrets.RAKUTEN_COMMISSION_RATE_DEFAULT }}
+          KEEPA_API_KEY: ${{ secrets.KEEPA_API_KEY }}
+          TOP_N: ${{ secrets.TOP_N }}
+        run: |
+          python -m affiliate.pipelines.daily_runner
