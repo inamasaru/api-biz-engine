@@ -1,0 +1,39 @@
+name: daily-pipeline
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 21 * * *" # 06:00 JST
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run pipeline (no secrets required)
+        run: |
+          python scripts/pipeline.py
+
+      - name: Commit docs/latest.md (update Pages content)
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs/latest.md reports/decision.json || true
+          git commit -m "chore: daily report" || echo "no changes"
+          git push
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: reports/
