@@ -1,12 +1,78 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Biz Engine</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>自由診療クリニック向け 予約獲得AIエンジン</title>
+  <meta name="description" content="美容皮膚科/ 医療脱毛/AGA向け。広告・LP・予約导絞を每日自動改善し、予約獲得を安定化。無料診断あり。" />
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; margin:0; color:#111; line-height:1.6;}
+    .wrap{max-width:980px;margin:0 auto;padding:28px;}
+    .hero{padding:40px 0 20px;border-bottom:1px solid #eee;}
+    h1{font-size:34px;margin:0 0 12px;}
+    h2{font-size:20px;margin:28px 0 10px;}
+    .pill{display:inline-block;border:1px solid #ddd;border-radius:999px;padding:6px 12px;margin:6px 6px 0 0;font-size:13px;}
+    .box{border:1px solid #eee;border-radius:14px;padding:16px;margin:14px 0;}
+    .cta{display:inline-block;background:#111;color:#fff;text-decoration:none;padding:14px 18px;border-radius:12px;font-weight:700;}
+    .muted{color:#555;font-size:14px}
+    code,pre{background:#f7f7f7;border-radius:10px;padding:12px;display:block;overflow:auto}
+    footer{border-top:1px solid #eee;margin-top:30px;padding-top:18px;color:#666;font-size:13px}
+  </style>
 </head>
 <body>
-    <h1>API Biz Engine</h1>
-    <p>Welcome to API Biz Engine documentation.</p>
+  <div class="wrap">
+    <div class="hero">
+      <div class="pill">対象：美容皮膚科 / 医療脱毛 / AGA</div>
+      <div class="pill">月額：200万円（3ヶ月契約）</div>
+      <div class="pill">每日：広告・LP・导絞を自動改善</div>
+      <h1>予約獲得を「每日改善」で安定化する<br>自由診療クリニック向け AIエンジン</h1>
+      <p class="muted">％倍診断は組み合わせによって違く。倍表現を使用しない。</p>
+      <p><a class="cta" href="https://forms.gle/REPLACE_ME">無料診断（所要2分）</a></p>
+      <p class="muted">無料診断：現状の集客导絞を確認し、改善余地と最短プランを返します。</p>
+    </div>
+
+    <h2>提供するもの（運用込み）</h2>
+    <div class="box">
+      <div class="pill">① LP自動生成</div>
+      <div class="pill">② 広告文自動生成</div>
+      <div class="pill">③ 予約导絞の最適化</div>
+      <div class="pill">④ KPI判定（GO/STOP）</div>
+      <div class="pill">⑤ 每日改善ログ</div>
+      <p class="muted">あなたがやることは「GO / STOP」の判断のみ。</p>
+    </div>
+
+    <h2>なぜ成果が出るか（構造）</h2>
+    <div class="box">
+      <pre>データ取得 → KPI判定 → 改善仮設 → コピー/LP修正 → デプロイ → レポート</pre>
+      <p class="muted">このループを每日自動実行します（GitHub Actions）。</p>
+    </div>
+
+    <h2>每日改善ログ（最新）</h2>
+    <div class="box">
+      <p class="muted">レポートをここに表示します。</p>
+      <div id="latest">読み込み中...</div>
+    </div>
+
+    <h2>料金</h2>
+    <div class="box">
+      <p><b>月額：200万円</b>（3ヶ月契約） / 初期費用0円</p>
+      <p class="muted">％広告費は別。必要に応じて院側のアカウントで運用します。</p>
+    </div>
+
+    <footer>
+      <div>運用ポリシー：賞大表現・比較優良・体験説形式・Before/Afterなどの表現は出力しません。</div>
+    </footer>
+  </div>
+
+  <script>
+    fetch('./latest.md', {cache:'no-store'})
+      .then(r=>r.ok?r.text():Promise.reject(r.status))
+      .then(t=>document.getElementById('latest').innerHTML = '<pre>'+escapeHtml(t)+'</pre>')
+      .catch(()=>document.getElementById('latest').textContent='レポート未生成（初回実行待ち）');
+
+    function escapeHtml(s){
+      return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+    }
+  </script>
 </body>
 </html>
