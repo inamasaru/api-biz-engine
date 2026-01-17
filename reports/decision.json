@@ -1,0 +1,13 @@
+{
+  "go": true,
+  "reason": "GO条件を満たす",
+  "metrics": {
+    "reply_rate": 0.02,
+    "meeting_rate": 0.005,
+    "close_rate": 0.1,
+    "spend_yen": 300000,
+    "bookings_est": 3,
+    "cpa_yen": 100000.0,
+    "price_yen": 2000000
+  }
+}
